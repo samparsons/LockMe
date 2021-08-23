@@ -1,17 +1,26 @@
 package Application;
 
+
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.List;
 import java.util.Scanner;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 
+import Exceptions.PatternNotValidException;
+import Exceptions.UserExistsException;
+import Exceptions.UserNotFoundException;
 import Model.User;
-import Model.UserExistsException;
-import Model.UserNotFoundException;
-import Model.PatternNotValidException;
 
 public class Application {
 
@@ -239,48 +248,129 @@ public class Application {
 				System.out.println("|-------------------------------------------------------------------------------|");
 			}
 			
+			
+			
 			registration = false;
 		}
 	}
 	
 	private static User createUser(String username,String password) throws UserExistsException {
-		Integer id = 0;
-		User user = new User(id, username, password);
-		System.out.println(user);
+		User user = new User(username, password);
+		String path = "userDB/userDB.txt";
 		try {
-
-			File file = new File("userDB/"+username+".txt");
+			
+			File file = new File(path);
 			boolean chkFile = file.exists();
 			if(!chkFile) {
 				file.createNewFile();
-				// create file output stream, make appendable.
-				
-				FileOutputStream fos = new FileOutputStream("userDB/"+username+".txt");
+				// create file output stream, make appendable.				
+				FileOutputStream fos = new FileOutputStream(path);
 				
 				// create object output stream
-				ObjectOutputStream out = new ObjectOutputStream(fos);
-				
+				ObjectOutputStream out = new ObjectOutputStream(fos);			
 				// method to serialize object
 				out.writeObject(user);
-				
-				System.out.println("Serialization is completed.");
-				
+				System.out.println("New User Created. 1");				
 				out.close();
 				fos.close();
 			} else {
-				String message = "ERROR: Username "+username+" already exists.";
-				throw new UserExistsException(repeatCharSpace(message));
+				/*
+				ArrayList<Object> obj = new ArrayList<Object>();
+				obj = readObjects(path);
+				boolean writeUser = true;
+				for (Object o : obj) {
+					User u = (User) o; 
+					if( username.equals( u.getUsername() ) ){
+						writeUser = false;
+						String message = "ERROR: Username: "+username+" already exists.";
+						throw new UserExistsException(repeatCharSpace(message));
+					}
+				}
+				if(writeUser) {
+					ArrayList<User> users = new ArrayList<User>();
+					for (Object o : obj) {
+						User u = (User) o; 
+						users.add(u);
+					}	
+				
+				User lastUser = users.stream()
+                        .max(Comparator.comparingInt(User::getId))
+                        .get();
+				System.out.println("max id found is"+lastUser.getId());
+				user.setId(lastUser.getId());
+				
+								
+				// create file output stream, make appendable.				
+				FileOutputStream fos = new FileOutputStream(path,true);
+				
+				// create object output stream
+				ObjectOutputStream out = new ObjectOutputStream(fos);
+				out.flush();
+				// method to serialize object
+				out.writeObject(user);
+				System.out.println("New User Created. 2");				
+				out.close();
+				fos.close();
+				*/
+				
+				ObjectOutputStream outputStream = null;
+
+		        try {
+
+		            //Construct the LineNumberReader object
+		            outputStream = new ObjectOutputStream(new FileOutputStream(path,true));
+		            outputStream.writeObject(user);
+
+		        } catch (FileNotFoundException ex) {
+		            ex.printStackTrace();
+		        } catch (IOException ex) {
+		            ex.printStackTrace();
+		        } finally {
+		            //Close the ObjectOutputStream
+		            try {
+		                if (outputStream != null) {
+		                    outputStream.flush();
+		                    outputStream.close();
+		                }
+		            } catch (IOException ex) {
+		                ex.printStackTrace();
+		            }
+				
+		        }
 			}
-			
-			
-			
 		} catch(IOException ex) {
-			System.out.println(ex.getMessage());
+				System.out.println(ex.getMessage());
+			}
+		return user;
+	}
+	private static List<String> readFileIntoList(String filename) {
+		List<String> lines = Collections.emptyList();
+		// read file
+		try {
+			lines = Files.readAllLines(Paths.get(filename), StandardCharsets.UTF_8);
+		} catch (IOException e) {
+			System.out.println("File not found exception.");
+			System.out.println(e.getMessage());
 		}
 		
-		return user;
-		
+		return lines;
+
 	}
+	
+	public static void ReadObjectFromFile(String filepath) {
+		
+        try {
+ 
+            FileInputStream fileIn = new FileInputStream(filepath);
+            ObjectInputStream objectIn = new ObjectInputStream(fileIn);
+            User obj = (User) objectIn.readObject(); 
+            System.out.println(obj.toString());
+            System.out.println("The Object has been read from the file");
+            objectIn.close(); 
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
 	
 	//ERRORS
 	private static boolean validateString(String input) throws PatternNotValidException {

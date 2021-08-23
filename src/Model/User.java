@@ -1,19 +1,19 @@
 package Model;
 
 import java.io.Serializable;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Vector;
 
 public class User implements Serializable  {
 	
 	private static final long serialVersionUID = 1L;
 	
+	private Vector<User> arr;
 	// properties
-    private Integer id;
 	private String username;
 	private String password;
 	
-	public Integer getId() {
-		return id;
-	}
 	
 	public String getUsername() {
 		return username;
@@ -21,6 +21,7 @@ public class User implements Serializable  {
 	public void setUsername(String username) {
 		this.username = username;
 	}
+	
 	public String getPassword() {
 		return password;
 	}
@@ -28,15 +29,19 @@ public class User implements Serializable  {
 		this.password = password;
 	}
 	
-	public User(Integer id, String username, String password) {
+	public User(String username, String password) {
 		super();
-		this.id = id;
 		this.username = username;
 		this.password = password;
 	}
 
 	@Override
 	public String toString() {
-		return "User [id=" + id + ", username=" + username + ", password=" + password + "]";
+		return "User [username=" + username + ", password=" + password + "]";
+	}
+	public byte[] getBytes() {
+	  String str = "User [username=" + username + ", password=" + password + "]";
+      byte[] bytes = str.getBytes();
+      return bytes;
 	}
 }
