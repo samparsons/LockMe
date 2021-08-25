@@ -3,13 +3,13 @@ package Model;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
 import java.util.Vector;
 
 public class User implements Serializable  {
 	
 	private static final long serialVersionUID = 1L;
-	
-	private Vector<User> arr;
+
 	// properties
 	private String username;
 	private String password;
@@ -44,4 +44,5 @@ public class User implements Serializable  {
       byte[] bytes = str.getBytes();
       return bytes;
 	}
+	
 }
