@@ -3,6 +3,7 @@ package Application;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -10,7 +11,6 @@ import java.io.ObjectOutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 import Exceptions.PatternNotValidException;
@@ -63,11 +63,12 @@ public class Application {
 	// LOGIN METHOD:
 	// 1 create the user db if doesn't exist
 	// 2 scan user file for user object with matching username
-	private static void login(String choice) {
-		//System.out.println("|-------------------------------------------------------------------------------|");
+	private static ArrayList<User> login(String choice) {
+		System.out.println("|-------------------------------------------------------------------------------|");
 		System.out.println("| Logging in...                                                                 |");
 		System.out.println("|-------------------------------------------------------------------------------|");
 		checkDir();
+		ArrayList<User> userList = new ArrayList<User>();
 		
 		boolean login = true;
 		while(login) {
@@ -85,18 +86,17 @@ public class Application {
 					choice 			= welcome.nextLine();
 				} 
 				if(choice.equals("Quit")) {
-					//System.out.println("|-------------------------------------------------------------------------------|");
+					System.out.println("|-------------------------------------------------------------------------------|");
 					System.out.println("| Exiting program. Thank you for using LockMe!                                  |");
 					System.out.println("|-------------------------------------------------------------------------------|");
 					break;
 				}else if(choice.equals("register")) {
 					register();
+					user=false;
 				} else {
 				
 					try {
-						//System.out.println("|-------------------------------------------------------------------------------|");
 						validUser = validateString(choice);
-						//System.out.println("| validUser: "+validUser+"                                                               |");
 						System.out.println("|-------------------------------------------------------------------------------|");
 					} catch (PatternNotValidException e) {
 						System.out.println(e);
@@ -105,7 +105,6 @@ public class Application {
 					
 					try {
 						newUser = checkUser(choice);
-						System.out.println("new user?: "+newUser);
 					} catch (UserNotFoundException e) {
 						System.out.println(e);
 						System.out.println("|-------------------------------------------------------------------------------|");
@@ -119,14 +118,51 @@ public class Application {
 				counter++;
 			}
 			
+			while(pass) {
+				String password = "";
+				if(choice.equals("Quit")) {
+					System.out.println("|-------------------------------------------------------------------------------|");
+					System.out.println("| Exiting program. Thank you for using LockMe!                                  |");
+					System.out.println("|-------------------------------------------------------------------------------|");
+					break;
+				}
+				if(counter == 0) {
+					System.out.println("|-------------------------------------------------------------------------------|");
+					System.out.println("| Enter Password or type 'Quit' to exit                                      |");
+					System.out.println("|-------------------------------------------------------------------------------|");
+					Scanner welcome	= new Scanner(System.in);				
+					password = welcome.nextLine();
+				} else if(counter > 0) {
+					System.out.println("|-------------------------------------------------------------------------------|");
+					System.out.println("| Try a New Password or type 'Quit' to exit                                      |");
+					System.out.println("|-------------------------------------------------------------------------------|");
+					Scanner welcome	= new Scanner(System.in);				
+					password = welcome.nextLine();
+				}
+				
+				userList = getUsers(choice);
+				String savedPassword = userList.get(0).getPassword();
+							
+				if(password.equals(savedPassword)) {
+					try {
+						System.out.println("read users...");
+						readUsers(choice);
+						System.out.println("---------------------------------------------------------------------------------");
+						ReadObjectFromFile(choice);
+						System.out.println("---------------------------------------------------------------------------------");
+					} catch (UserExistsException e) {
+						System.out.println(e);
+						System.out.println("|-------------------------------------------------------------------------------|");
+					}
+					pass = false;
+					login = false;
+				}
+				counter++;
+			}
 			
-			//STILL NEED PASSWORD AFTER I CREATE REG DB
-			
-			
-			
-			//kill code for dev
-			login = false;
-		}		
+		}
+		System.out.println("LOGIN SUCCESS....");
+		return userList;
 	}
 	
 	// LOGIN 1: check to see if directory exists, and if not, create it.
@@ -137,9 +173,11 @@ public class Application {
 			//Creating the directory
 			boolean bool = file.mkdir();
 		    if(bool){
-				System.out.println("| userDB created...                                                             |");
+		    	String message = "SUCCESS: userDB file created. LockMe is ready to run.";
+		    	System.out.println(repeatCharSpace(message));
 		    }else{
-		    	System.out.println("| Error: could not create userDB...                                             |");
+		    	String message = "ERROR: Could not create userDB file.";
+		    	System.out.println(repeatCharSpace(message));
 		    }
 		}
 	}
@@ -156,7 +194,8 @@ public class Application {
 	}
 	
 	// REGISTRATION MAIN METHOD
-	private static void register() {
+	private static ArrayList<User> register() {
+		ArrayList<User> userList = new ArrayList<User>();
 		System.out.println("| Begin registration...                                                         |");
 		System.out.println("|-------------------------------------------------------------------------------|");
 		checkDir();
@@ -235,63 +274,77 @@ public class Application {
 				}
 				counter++;
 			}
-			//kill code for dev
+			
+			
 			try {
-				ArrayList<User> userList = new ArrayList<User>();
-				int counter2 = 0;
-				while(userList.size()<10) {
-					counter++;
-					userList.add(createUser(username+counter2,password));
-				}
+				userList.add(createUser(username,password));
 				System.out.println("Save users...");
 				saveUser(userList);
 				System.out.println("read users...");
-				readUsers();
+				readUsers(username);
 				System.out.println("---------------------------------------------------------------------------------");
-				ReadObjectFromFile();
+				ReadObjectFromFile(username);
 				System.out.println("---------------------------------------------------------------------------------");
-				System.out.println("new user?: "+ userList);
 			} catch (UserExistsException e) {
 				System.out.println(e);
 				System.out.println("|-------------------------------------------------------------------------------|");
 			}
 			
 			
-			registration = false;
-		}
+		} return userList;
 	}
+	
+	
 	
 	private static User createUser(String username,String password) throws UserExistsException {
 		User user = new User(username, password);
 		return user;
 	}
 	
-	private static void saveUser(ArrayList<User> userList) {
-		String path = "userDB/userDB.txt";
+	private static void saveUser(ArrayList<User> userList) throws UserExistsException {
+		String path = "userDB/"+userList.get(0).getUsername()+".txt";
 		try {
 			File file = new File(path);
-			//boolean chkFile = file.exists();
-			//if(!chkFile) {
-			file.createNewFile();
-			// create file output stream, make appendable.				
-			FileOutputStream fos = new FileOutputStream(path,true);				
-			// create object output stream
-			ObjectOutputStream out = new ObjectOutputStream(fos);		
-			// method to serialize object
-			out.writeObject(userList);
-			System.out.println("New User Created. 1");	
-			out.close();
-			fos.close();
+			boolean chkFile = file.exists();
+			if(!chkFile) {
+				file.createNewFile();
+				// create file output stream, make appendable.				
+				FileOutputStream fos = new FileOutputStream(path,true);				
+				// create object output stream
+				ObjectOutputStream out = new ObjectOutputStream(fos);		
+				// method to serialize object
+				out.writeObject(userList);
+				System.out.println("New User Created. 1");	
+				out.close();
+				fos.close();
+			} else {
+				String message = "ERROR: User already exists.";
+				throw new UserExistsException(repeatCharSpace(message));
+			}
 			
 		} catch(IOException ex) {
 				System.out.println(ex.getMessage());
 		}
 	}
 	
+	
 	@SuppressWarnings("unchecked")
-	private static void readUsers() {
+	private static ArrayList<User> getUsers(String username) {
+		ArrayList<User> userList = new ArrayList<User>();
 		try {
-			FileInputStream file = new FileInputStream("userDB/userDB.txt");
+			FileInputStream file = new FileInputStream("userDB/"+username+".txt");
+			ObjectInputStream in = new ObjectInputStream(file);
+			userList = (ArrayList<User>) in.readObject();	
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+		return userList;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private static void readUsers(String username) {
+		try {
+			FileInputStream file = new FileInputStream("userDB/"+username+".txt");
 			ObjectInputStream in = new ObjectInputStream(file);
 			ArrayList<User> user = (ArrayList<User>) in.readObject();	
 			System.out.println(user);
@@ -301,14 +354,18 @@ public class Application {
 				System.out.println(u.getPassword());
 				
 			}
-		} catch (Exception e) {
+		} catch (FileNotFoundException e) {
+			System.out.println(e.getMessage());
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+		} catch (ClassNotFoundException e) {
 			System.out.println(e.getMessage());
 		}	
 	}
 	
-	public static void ReadObjectFromFile() {
+	public static void ReadObjectFromFile(String username) {
 		
-		File file = new File("userDB/userDB.txt");
+		File file = new File("userDB/"+username+".txt");
         Charset charset = StandardCharsets.UTF_8;
  
         try (FileInputStream fis = new FileInputStream(file))
