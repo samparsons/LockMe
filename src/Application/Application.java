@@ -243,7 +243,6 @@ public class Application {
 				try {
 					//System.out.println("|-------------------------------------------------------------------------------|");
 					validPass = validateString(password);
-					//System.out.println("| reg validPass: "+validPass+"                                                               |");
 					//System.out.println("|-------------------------------------------------------------------------------|");
 				} catch (PatternNotValidException e) {
 					System.out.println(e);
@@ -293,7 +292,7 @@ public class Application {
 		int counter = 0;
 		while(menu) {
 			if(counter>0) {
-				System.out.println(repeatCharSpace("CHOOSE AN OPTION (7: SEE CHOICES)"));
+				System.out.println(repeatCharSpace("CHOOSE AN OPTION (CHOOSE 7 TO SEE CHOICES)"));
 			}
 			Scanner userPortal = new Scanner(System.in);				
 			int choice 	= userPortal.nextInt();
@@ -305,10 +304,15 @@ public class Application {
 			} else if (choice == 2) {
 				System.out.println(repeatCharSpace("2. SAVE NEW CREDENTIALS"));
 				saveCreds(userList);
+				counter++;
 			} else if (choice == 3) {
 				System.out.println(repeatCharSpace("3: SEARCH FOR SAVED CREDENTIALS"));
+				searchCreds(userList);
+				counter++;
 			} else if (choice == 4) {
 				System.out.println(repeatCharSpace("4: DELETE A SAVED CREDENTIAL"));
+				deleteCred(userList);
+				counter++;
 			} else if (choice == 5) {
 				System.out.println(repeatCharSpace("5: RETURN TO MAIN MENU"));
 				menu=false;
@@ -331,7 +335,121 @@ public class Application {
 			
 		}
 	}
-	
+	// *********************
+	// deleteCred method - for a given user, delete all creds that match key value given.
+	// *********************
+	private static void deleteCred(ArrayList<User> userList) {
+		// DO DELETE NEXT
+		
+	}
+
+	// *********************
+	// searchCreds method - for a given user, find all creds that match key value given.
+	// *********************
+	private static void searchCreds(ArrayList<User> userList) {
+		System.out.println(repeatCharSpace("SEARCH YOUR CREDENTIALS! FIRST, CHOOSE A SEARCH TYPE..."));
+		System.out.println("|-------------------------------------------------------------------------------|");
+		System.out.println(repeatCharSpace("SEARCH TYPES:"));
+		System.out.println(repeatCharSpace("1: USERNAME SEARCH"));
+		System.out.println(repeatCharSpace("2. PASSWORD SEARCH"));
+		System.out.println(repeatCharSpace("3: SITE SEARCH"));
+		System.out.println(repeatCharSpace("4: QUIT"));
+		System.out.println("|-------------------------------------------------------------------------------|");
+		
+		
+		
+		ArrayList<Creds> existingCreds = new ArrayList<Creds>(getCreds(userList));
+		boolean searching = true;
+		while(searching) {
+			System.out.print("| CHOOSE SEARCH TYPE: ");
+			Scanner choice   = new Scanner(System.in);				
+			int type = choice.nextInt();
+			if(type == 1) {
+				System.out.println(repeatCharSpace("USERNAME SEARCH: ENTER USERNAME..."));
+				System.out.print("| USERNAME: ");
+				Scanner username  = new Scanner(System.in);				
+				String searchUn = 	username.nextLine();
+				for (Creds c : existingCreds) {
+					if(c.getUsername()!=null&&c.getUsername().equals(searchUn)) {
+						int counter = 1;
+						System.out.print("| USERNAME MATCH: "+counter);
+						System.out.println(repeatCharSpace("USERNAME: "+c.getUsername()));
+						System.out.println(repeatCharSpace("PASSWORD: "+c.getPassword()));
+						System.out.println(repeatCharSpace("SITENAME: "+c.getSite()));
+						System.out.println("|-------------------------------------------------------------------------------|");
+						counter++;
+					}
+				}
+			
+			} else if (type == 2) {
+				System.out.println(repeatCharSpace("PASSWORD SEARCH: ENTER PASSWORD..."));
+				System.out.print("| PASSWORD: ");
+				Scanner password  = new Scanner(System.in);				
+				String searchPw = 	password.nextLine();
+				for (Creds c : existingCreds) {
+					if(c.getPassword()!=null&&c.getPassword().equals(searchPw)) {
+						int counter = 1;
+						System.out.print("| PASSWORD MATCH: "+counter);
+						System.out.println(repeatCharSpace("USERNAME: "+c.getUsername()));
+						System.out.println(repeatCharSpace("PASSWORD: "+c.getPassword()));
+						System.out.println(repeatCharSpace("SITENAME: "+c.getSite()));
+						System.out.println("|-------------------------------------------------------------------------------|");
+						counter++;
+					}
+				}
+				
+			} else if (type == 3) {
+				System.out.println(repeatCharSpace("SITE SEARCH: ENTER SITENAME..."));
+				System.out.print("| SITE: ");
+				Scanner site  = new Scanner(System.in);				
+				String searchSite = 	site.nextLine();
+				for (Creds c : existingCreds) {
+					if(c.getSite()!=null&&c.getSite().equals(searchSite)) {
+						int counter = 1;
+						System.out.print("| SITE MATCH: "+counter);
+						System.out.println(repeatCharSpace("USERNAME: "+c.getUsername()));
+						System.out.println(repeatCharSpace("PASSWORD: "+c.getPassword()));
+						System.out.println(repeatCharSpace("SITENAME: "+c.getSite()));
+						System.out.println("|-------------------------------------------------------------------------------|");
+						counter++;
+					}
+				}
+			} else if (type == 4) {
+				System.out.println("| QUITTING SEARCH. RETURNING TO USER PORTAL...");
+				searching = false;
+			} 
+		}
+	}
+
+	private static ArrayList<Creds> getCreds(ArrayList<User> userList) {
+		ArrayList<Creds> existingCreds = new ArrayList<Creds>();
+		String username = userList.get(0).getUsername();
+		try {
+			File f = new File("credDB/"+username+".txt");			
+			if(f.length()==0) {
+				Creds creds = new Creds(userList.get(0).getUsername(),userList.get(0).getPassword(),"htpps://lockme.com");
+				existingCreds.add(creds);
+			} else {
+			FileInputStream file = new FileInputStream("credDB/"+username+".txt");
+			ObjectInputStream in = new ObjectInputStream(file);
+			@SuppressWarnings("unchecked")
+			ArrayList<Creds> existingCreds1 = (ArrayList<Creds>) in.readObject();
+			existingCreds = existingCreds1;
+			in.close();
+			file.close();
+			}
+		} catch (FileNotFoundException e) {
+			System.out.println(e.getMessage());
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+		} catch (ClassNotFoundException e) {
+			System.out.println(e.getMessage());
+		}
+		
+		return existingCreds;
+		
+	}
+
 	// *********************
 	// saveCreds method - for a given user, create new creds.
 	// *********************
@@ -368,7 +486,6 @@ public class Application {
 			ArrayList<Creds> existingCreds = (ArrayList<Creds>) in.readObject();
 			if(confChoice.equals("Y")) {
 				Creds cred = new Creds(newUsernameIn,newPasswordIn,newSiteIn);
-				System.out.println(cred);
 				existingCreds.add(cred);
 				// create file output stream, make appendable.				
 				FileOutputStream fos = new FileOutputStream("credDB/"+username+".txt");				
