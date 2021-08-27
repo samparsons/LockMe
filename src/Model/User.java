@@ -1,10 +1,6 @@
 package Model;
 
 import java.io.Serializable;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
-import java.util.Vector;
 
 public class User implements Serializable  {
 	

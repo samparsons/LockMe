@@ -16,17 +16,22 @@ import java.util.regex.Pattern;
 import Exceptions.PatternNotValidException;
 import Exceptions.UserExistsException;
 import Exceptions.UserNotFoundException;
+import Model.Creds;
 import Model.User;
 
 public class Application {
 
 	public static void main(String[] args) {
-		welcomeScreen();
-
+		ArrayList<User> userList = new ArrayList<User>();
+		userList = welcomeScreen();
+		userPortal(userList);
+		
 	}
-	// NOTE: write a main() method to call all required programs in main class. welcomeScreen is in this class.
 	
-	private static void welcomeScreen() {
+	// *********************
+	// WELCOME SCREEN
+	// *********************
+	private static ArrayList<User> welcomeScreen() {
 		System.out.println("Logo credit: https://patorjk.com/software/taag/#p=display&f=Isometric1&t=LockMe");
 		System.out.println("");
 		System.out.println("");
@@ -54,15 +59,20 @@ public class Application {
 		Scanner welcome = new Scanner(System.in);				
 		String choice 	= welcome.nextLine();
 		System.out.println("|-------------------------------------------------------------------------------|");
+		
+		// LOGIN OR REGISTER
+		ArrayList<User> userList = new ArrayList<User>();
 		if(choice.equals("register")) {
-			register();
+			userList = register();
 		} else {
-			login(choice);
+			userList = login(choice);
 		}
+		return userList;
 	}
-	// LOGIN METHOD:
-	// 1 create the user db if doesn't exist
-	// 2 scan user file for user object with matching username
+	
+	// ***********************
+	// LOGIN METHOD
+	// ***********************
 	private static ArrayList<User> login(String choice) {
 		System.out.println("|-------------------------------------------------------------------------------|");
 		System.out.println("| Logging in...                                                                 |");
@@ -145,10 +155,8 @@ public class Application {
 							
 				if(password.equals(savedPassword)) {
 					try {
-						System.out.println("read users...");
-						readUsers(choice);
-						System.out.println("---------------------------------------------------------------------------------");
-						ReadObjectFromFile(choice);
+						System.out.println("LOGIN SUCCESSFUL...");
+						//readUsers(choice);
 						System.out.println("---------------------------------------------------------------------------------");
 					} catch (UserExistsException e) {
 						System.out.println(e);
@@ -161,39 +169,12 @@ public class Application {
 			}
 			
 		}
-		System.out.println("LOGIN SUCCESS....");
 		return userList;
 	}
 	
-	// LOGIN 1: check to see if directory exists, and if not, create it.
-	private static void checkDir(){
-		File file = new File("userDB");
-		boolean ckDir = file.exists();
-		if(!ckDir) {
-			//Creating the directory
-			boolean bool = file.mkdir();
-		    if(bool){
-		    	String message = "SUCCESS: userDB file created. LockMe is ready to run.";
-		    	System.out.println(repeatCharSpace(message));
-		    }else{
-		    	String message = "ERROR: Could not create userDB file.";
-		    	System.out.println(repeatCharSpace(message));
-		    }
-		}
-	}
-	
-	private static boolean checkUser(String choice) throws UserNotFoundException{
-		File file = new File("UserDB/"+choice+".txt");
-		boolean ckFile = file.exists();
-		if(!ckFile) {
-			String message = "ERROR: Username "+choice+" not found. Please register.";
-			throw new UserNotFoundException(repeatCharSpace(message));
-		} else {
-			return true;
-		}
-	}
-	
-	// REGISTRATION MAIN METHOD
+	// ***********************
+	// REGISTRATION MAIN METHOD - create usernames if they don't exist
+	// ***********************
 	private static ArrayList<User> register() {
 		ArrayList<User> userList = new ArrayList<User>();
 		System.out.println("| Begin registration...                                                         |");
@@ -230,7 +211,7 @@ public class Application {
 				try {
 					//System.out.println("|-------------------------------------------------------------------------------|");
 					validUser = validateString(username);
-					System.out.println("| reg validUser: "+validUser+"                                                               |");
+					//System.out.println("| reg validUser: "+validUser+"                                                               |");
 					System.out.println("|-------------------------------------------------------------------------------|");
 				} catch (PatternNotValidException e) {
 					System.out.println(e);
@@ -262,8 +243,8 @@ public class Application {
 				try {
 					//System.out.println("|-------------------------------------------------------------------------------|");
 					validPass = validateString(password);
-					System.out.println("| reg validPass: "+validPass+"                                                               |");
-					System.out.println("|-------------------------------------------------------------------------------|");
+					//System.out.println("| reg validPass: "+validPass+"                                                               |");
+					//System.out.println("|-------------------------------------------------------------------------------|");
 				} catch (PatternNotValidException e) {
 					System.out.println(e);
 					System.out.println("|-------------------------------------------------------------------------------|");
@@ -283,8 +264,6 @@ public class Application {
 				System.out.println("read users...");
 				readUsers(username);
 				System.out.println("---------------------------------------------------------------------------------");
-				ReadObjectFromFile(username);
-				System.out.println("---------------------------------------------------------------------------------");
 			} catch (UserExistsException e) {
 				System.out.println(e);
 				System.out.println("|-------------------------------------------------------------------------------|");
@@ -294,13 +273,265 @@ public class Application {
 		} return userList;
 	}
 	
+	// ***********************
+	// UserPortal MAIN METHOD - create usernames if they don't exist
+	// ***********************
+	private static void userPortal(ArrayList<User> userList) {
+		checkDirCreds();
+		createCredDB(userList);
+		System.out.println("|-------------------------------------------------------------------------------|");
+		System.out.println(repeatCharSpace("WELCOME TO LOCKME! CHOOSE AN OPTION:"));
+		// add a counter if you have time. YOU HAVE X SAVED CREDENTIALS!
+		System.out.println(repeatCharSpace("1: SEE SAVED CREDENTIALS"));
+		System.out.println(repeatCharSpace("2. SAVE NEW CREDENTIALS"));
+		System.out.println(repeatCharSpace("3: SEARCH FOR SAVED CREDENTIALS"));
+		System.out.println(repeatCharSpace("4: DELETE A SAVED CREDENTIAL"));
+		System.out.println(repeatCharSpace("5: RETURN TO MAIN MENU"));
+		System.out.println(repeatCharSpace("6: QUIT"));
+		System.out.println("|-------------------------------------------------------------------------------|");
+		boolean menu=true;
+		int counter = 0;
+		while(menu) {
+			if(counter>0) {
+				System.out.println(repeatCharSpace("CHOOSE AN OPTION (7: SEE CHOICES)"));
+			}
+			Scanner userPortal = new Scanner(System.in);				
+			int choice 	= userPortal.nextInt();
+			if (choice == 1) {
+				System.out.println(repeatCharSpace("1: SEE SAVED CREDENTIALS"));
+				System.out.println(userList.get(0).getUsername());
+				readCreds(userList);
+				counter++;
+			} else if (choice == 2) {
+				System.out.println(repeatCharSpace("2. SAVE NEW CREDENTIALS"));
+				saveCreds(userList);
+			} else if (choice == 3) {
+				System.out.println(repeatCharSpace("3: SEARCH FOR SAVED CREDENTIALS"));
+			} else if (choice == 4) {
+				System.out.println(repeatCharSpace("4: DELETE A SAVED CREDENTIAL"));
+			} else if (choice == 5) {
+				System.out.println(repeatCharSpace("5: RETURN TO MAIN MENU"));
+				menu=false;
+				welcomeScreen();
+			} else if (choice == 6) {
+				System.out.println(repeatCharSpace("6: QUIT"));
+				menu=false;
+				break;
+			} else if (choice == 7) {
+				System.out.println("|-------------------------------------------------------------------------------|");
+				System.out.println(repeatCharSpace("CHOOSE AN OPTION:"));
+				System.out.println(repeatCharSpace("1: SEE SAVED CREDENTIALS"));
+				System.out.println(repeatCharSpace("2. SAVE NEW CREDENTIALS"));
+				System.out.println(repeatCharSpace("3: SEARCH FOR SAVED CREDENTIALS"));
+				System.out.println(repeatCharSpace("4: DELETE A SAVED CREDENTIAL"));
+				System.out.println(repeatCharSpace("5: RETURN TO MAIN MENU"));
+				System.out.println(repeatCharSpace("6: QUIT"));
+				System.out.println("|-------------------------------------------------------------------------------|");
+			}
+			
+		}
+	}
 	
+	// *********************
+	// saveCreds method - for a given user, create new creds.
+	// *********************
+	private static void saveCreds(ArrayList<User> userList) {
+		String username = userList.get(0).getUsername();
 	
+		// show all users saved
+		System.out.println(repeatCharSpace("SAVE NEW CREDENTIALS..."));
+		System.out.print("| SITENAME: ");
+		Scanner newSite  = new Scanner(System.in);				
+		String newSiteIn = 	newSite.nextLine();
+		
+		System.out.print("| NEW USERNAME: ");
+		Scanner newUsername  = new Scanner(System.in);				
+		String newUsernameIn = newUsername.nextLine();
+		
+		System.out.print("| NEW PASSWORD: ");
+		Scanner newPassword  = new Scanner(System.in);				
+		String newPasswordIn = 	newPassword.nextLine();
+		
+		System.out.println("|-------------------------------------------------------------------------------|");
+		System.out.println("| CONFIRM CREDENTIALS: ");
+		System.out.println("|-------------------------------------------------------------------------------|");
+		System.out.println(repeatCharSpace("USERNAME: "+newUsernameIn));
+		System.out.println(repeatCharSpace("PASSWORD: "+newPasswordIn));
+		System.out.println(repeatCharSpace("SITENAME: "+newSiteIn));
+		
+		System.out.print("| ARE THESE CORRECT? (Y/N): ");
+		Scanner confirm   = new Scanner(System.in);				
+		String confChoice = confirm.nextLine();
+		try {
+			FileInputStream file = new FileInputStream("credDB/"+username+".txt");
+			ObjectInputStream in = new ObjectInputStream(file);
+			ArrayList<Creds> existingCreds = (ArrayList<Creds>) in.readObject();
+			if(confChoice.equals("Y")) {
+				Creds cred = new Creds(newUsernameIn,newPasswordIn,newSiteIn);
+				System.out.println(cred);
+				existingCreds.add(cred);
+				// create file output stream, make appendable.				
+				FileOutputStream fos = new FileOutputStream("credDB/"+username+".txt");				
+				// create object output stream
+				ObjectOutputStream out = new ObjectOutputStream(fos);		
+				// method to serialize object
+				out.writeObject(existingCreds);
+				out.close();
+				fos.close();
+				System.out.println(repeatCharSpace("CREDENTIALS SAVED!"));
+			} else { // else do nothing
+				System.out.println(repeatCharSpace("CANCELLING SAVE NOW..."));
+			}
+			
+		} catch (FileNotFoundException e) {
+			System.out.println(e.getMessage());
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+		} catch (ClassNotFoundException e) {
+			System.out.println(e.getMessage());
+		}
+	}
+
+	// *********************
+	// readCreds method - outputs all credentials in the credDB file for the user.
+	// *********************
+	private static void readCreds(ArrayList<User> userList) {
+		ArrayList<Creds> existingCreds = new ArrayList<Creds>();
+		String username = userList.get(0).getUsername();
+		try {
+			File f = new File("credDB/"+username+".txt");			
+			if(f.length()==0) {
+				Creds creds = new Creds(userList.get(0).getUsername(),userList.get(0).getPassword(),"htpps://lockme.com");
+				existingCreds.add(creds);
+			} else {
+			FileInputStream file = new FileInputStream("credDB/"+username+".txt");
+			ObjectInputStream in = new ObjectInputStream(file);
+			@SuppressWarnings("unchecked")
+			ArrayList<Creds> existingCreds1 = (ArrayList<Creds>) in.readObject();
+			existingCreds = existingCreds1;
+			in.close();
+			file.close();
+			}
+			// show all users saved
+			System.out.println(repeatCharSpace("GETTING CREDENTIALS..."));
+			int counter = 0;
+			for(Creds cred : existingCreds) {
+				System.out.println(repeatCharSpace("USERNAME: "+cred.getUsername()));
+				System.out.println(repeatCharSpace("PASSWORD: "+cred.getPassword()));
+				System.out.println(repeatCharSpace("SITENAME: "+cred.getSite()));
+				counter++;
+			}
+			if(counter==0) {
+				System.out.println(repeatCharSpace("NO CREDENTIALS FOUND. SAVE SOME!"));
+			}
+			
+			
+		} catch (FileNotFoundException e) {
+			System.out.println(e.getMessage());
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+		} catch (ClassNotFoundException e) {
+			System.out.println(e.getMessage());
+		}
+	}
+
+	// *********************
+	// checkDirCreds method - creates the credDB folder if it doesn't exist.
+	// *********************
+	private static void checkDirCreds(){
+		File file = new File("credDB");
+		boolean ckDir = file.exists();
+		if(!ckDir) {
+			//Creating the directory
+			boolean bool = file.mkdir();
+		    if(bool){
+		    	String message = "SUCCESS: userDB file created. LockMe is ready to run.";
+		    	System.out.println(repeatCharSpace(message));
+		    }else{
+		    	String message = "ERROR: Could not create credDB file.";
+		    	System.out.println(repeatCharSpace(message));
+		    }
+		}
+	}
+	
+	// *********************
+	// createCredDB method - creates a credDB file for the user.
+	// *********************
+	private static void createCredDB(ArrayList<User> userList) {
+		String path = "credDB/"+userList.get(0).getUsername()+".txt";
+		try {
+			File file = new File(path);
+			boolean chkFile = file.exists();
+			if(!chkFile) {
+				file.createNewFile();
+				ArrayList<Creds> newCreds = new ArrayList<Creds>();
+				Creds creds = new Creds(userList.get(0).getUsername(),userList.get(0).getPassword(),"htpps://lockme.com");
+				newCreds.add(creds);
+				// create file output stream, make appendable.				
+				FileOutputStream fos = new FileOutputStream(path);				
+				// create object output stream
+				ObjectOutputStream out = new ObjectOutputStream(fos);		
+				// method to serialize object
+				out.writeObject(newCreds);
+				System.out.println("|-------------------------------------------------------------------------------|");
+				System.out.println("| New credentials storage created...                                            |");	
+				System.out.println("|-------------------------------------------------------------------------------|");
+				out.close();
+				fos.close();
+			} else {
+				System.out.println("|-------------------------------------------------------------------------------|");
+				System.out.println("| Saved credentials found...                                                    |");
+				System.out.println("|-------------------------------------------------------------------------------|");
+			}
+			
+		} catch(IOException ex) {
+				System.out.println(ex.getMessage());
+		}
+	}
+	
+	// ***********************
+	// checkDir method - check for directory, create if it doesn't exist.
+	// ***********************
+	private static void checkDir(){
+		File file = new File("userDB");
+		boolean ckDir = file.exists();
+		if(!ckDir) {
+			//Creating the directory
+			boolean bool = file.mkdir();
+		    if(bool){
+		    	String message = "SUCCESS: userDB file created. LockMe is ready to run.";
+		    	System.out.println(repeatCharSpace(message));
+		    }else{
+		    	String message = "ERROR: Could not create userDB file.";
+		    	System.out.println(repeatCharSpace(message));
+		    }
+		}
+	}
+	
+	// ***********************
+	// checkUser method - check for user existence
+	// ***********************
+	private static boolean checkUser(String choice) throws UserNotFoundException{
+		File file = new File("UserDB/"+choice+".txt");
+		boolean ckFile = file.exists();
+		if(!ckFile) {
+			String message = "ERROR: Username "+choice+" not found. Please register.";
+			throw new UserNotFoundException(repeatCharSpace(message));
+		} else {
+			return true;
+		}
+	}
+	
+	// *********************
+	// createUser method - create the user object so it can be added to ArrayList
+	// *********************
 	private static User createUser(String username,String password) throws UserExistsException {
 		User user = new User(username, password);
 		return user;
 	}
-	
+	// *********************
+	// saveUser method - saves a username and password to file as an ArrayList
+	// *********************
 	private static void saveUser(ArrayList<User> userList) throws UserExistsException {
 		String path = "userDB/"+userList.get(0).getUsername()+".txt";
 		try {
@@ -327,7 +558,9 @@ public class Application {
 		}
 	}
 	
-	
+	// *********************
+	// getUsers method - get userList from file.
+	// *********************
 	@SuppressWarnings("unchecked")
 	private static ArrayList<User> getUsers(String username) {
 		ArrayList<User> userList = new ArrayList<User>();
@@ -335,12 +568,17 @@ public class Application {
 			FileInputStream file = new FileInputStream("userDB/"+username+".txt");
 			ObjectInputStream in = new ObjectInputStream(file);
 			userList = (ArrayList<User>) in.readObject();	
+			file.close();
+			in.close();
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
 		return userList;
 	}
 	
+	// *********************
+	// readUsers method - read the user file.
+	// *********************
 	@SuppressWarnings("unchecked")
 	private static void readUsers(String username) {
 		try {
@@ -352,17 +590,21 @@ public class Application {
 			for(User u : user) {
 				System.out.println(u.getUsername());
 				System.out.println(u.getPassword());
-				
 			}
+			file.close();
+			in.close();
 		} catch (FileNotFoundException e) {
 			System.out.println(e.getMessage());
 		} catch (IOException e) {
 			System.out.println(e.getMessage());
 		} catch (ClassNotFoundException e) {
 			System.out.println(e.getMessage());
-		}	
+		} 
 	}
 	
+	// *********************
+	// ReadObjectFromFile method - QA purposes to see the file bitstream
+	// *********************
 	public static void ReadObjectFromFile(String username) {
 		
 		File file = new File("userDB/"+username+".txt");
