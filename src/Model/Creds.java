@@ -1,8 +1,9 @@
 package Model;
 
 import java.io.Serializable;
+import java.util.Comparator;
 
-public class Creds implements Serializable  {
+public class Creds implements Serializable,Comparable  {
 	
 	// properties
 	private static final long serialVersionUID = 1L;
@@ -71,6 +72,25 @@ public class Creds implements Serializable  {
 	  String str = "User [username=" + username + ", password=" + password + "]";
       byte[] bytes = str.getBytes();
       return bytes;
+	}
+	
+	public static Comparator<Creds> CredNameComparator = new Comparator<Creds>() {
+
+		public int compare(Creds s1, Creds s2) {
+		   String StudentName1 = s1.getUsername().toUpperCase();
+		   String StudentName2 = s2.getUsername().toUpperCase();
+
+		   //ascending order
+		   return StudentName1.compareTo(StudentName2);
+
+		   //descending order
+		   //return StudentName2.compareTo(StudentName1);
+	    }};
+
+
+	public int compareTo(Object o) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 	
 }
