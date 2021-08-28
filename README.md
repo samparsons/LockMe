@@ -6,6 +6,8 @@ The Admin interface will allow users to delete files. In this project, this is n
 To sort ArrayLists I used comparators on the User and Creds custom class objects to sort alphabetically by a chosen field, or the Arrays.sort() method where applicable.
 To display stored credentials from files, I retrieved the credentials using FileInputStream and ObjectInputStream, then used for() loops to show all credentials saved.
 Users can move between all interfaces (login, register, admin) until they login or register. Once they've successfully logged-in they will stay in the program until they quit. To acheive these 'active' interfaces I generally used while loops and used boolean fields to keep interfaces active until the choice to quit was made. 
+Custom Exceptions are thrown when invalid characters are used in username or password, or when users are / are not found.
+File not found expections are thrown when a file is not found. 
 
 FLOW OF APP
 To see the flow of the app, please view UML Diagrams here:

@@ -69,6 +69,7 @@ public class Application {
 			printDivider();
 			Scanner welcome = new Scanner(System.in);				
 			String choice 	= welcome.nextLine();
+			
 			if(choice.toLowerCase().equals("register")) {
 				userList = register();
 			} else if (choice.toLowerCase().equals("admin")) {
@@ -92,60 +93,90 @@ public class Application {
 		// check the username
 		ArrayList<User> userList = new ArrayList<User>();
 		boolean login = true;
-		boolean usernameValid = validateUser(choice);
-		System.out.println(usernameValid);
-		if(usernameValid) {
-			boolean pass = true;
-			int counter=0;
-			while(pass) {
-				String password = "";
-				if(counter == 0) {
-					printDivider();
-					System.out.println(repeatCharSpace("Enter Password or type 'Q' to exit"));
-					printDivider();
-					Scanner welcome	= new Scanner(System.in);				
-					password = welcome.nextLine();
-				} else if(counter > 0) {
-					printDivider();
-					System.out.println(repeatCharSpace("Sorry, that didn't work..."));
-					System.out.println(repeatCharSpace("Try a New Password or type 'Q' to exit"));
-					printDivider();
-					Scanner welcome	= new Scanner(System.in);				
-					password = welcome.nextLine();
-				}
-				
-				if(password.equals("Q")||password.equals("q")) {
-					printDivider();
-					System.out.println(repeatCharSpace("Exiting program. Thank you for using LockMe!"));
-					printDivider();
-					pass=false;
-				}
-				
-				if(pass) {
-					userList = getUserList(choice);
-					String savedPassword = userList.get(0).getPassword();
-								
-					if(password.equals(savedPassword)) {
-						try {
+		try {
+			boolean usernameValid = validateUser(choice);
+			if(usernameValid) {
+				boolean pass = true;
+				int counter=0;
+				while(pass) {
+					String password = "";
+					if(counter == 0) {
+						printDivider();
+						System.out.println(repeatCharSpace("Enter Password or type 'Q' to exit"));
+						printDivider();
+						Scanner welcome	= new Scanner(System.in);				
+						password = welcome.nextLine();
+						
+						if(password.equals("Q")||password.equals("q")) {
 							printDivider();
-							System.out.println(repeatCharSpace("LOGIN SUCCESSFUL..."));
-							//readUsers(choice);
+							System.out.println(repeatCharSpace("Exiting program. Thank you for using LockMe!"));
 							printDivider();
-						} catch (UserExistsException e) {
-							System.out.println(e);
-							printDivider();
+							pass=false;
 						}
-						pass = false;
+						
+						if(pass) {
+							userList = getUserList(choice);
+							String savedPassword = userList.get(0).getPassword();
+										
+							if(password.equals(savedPassword)) {
+								try {
+									printDivider();
+									System.out.println(repeatCharSpace("LOGIN SUCCESSFUL..."));
+									//readUsers(choice);
+									printDivider();
+								} catch (UserExistsException e) {
+									System.out.println(e);
+									printDivider();
+								}
+								pass = false;
+							}
+						}
+					} else if(counter > 0) {
+						printDivider();
+						System.out.println(repeatCharSpace("Sorry, that didn't work..."));
+						System.out.println(repeatCharSpace("Try a New Password or type 'Q' to exit"));
+						printDivider();
+						Scanner welcome	= new Scanner(System.in);				
+						password = welcome.nextLine();
+						
+						if(password.equals("Q")||password.equals("q")) {
+							printDivider();
+							System.out.println(repeatCharSpace("Exiting program. Thank you for using LockMe!"));
+							printDivider();
+							pass=false;
+						}
+						
+						if(pass) {
+							userList = getUserList(choice);
+							String savedPassword = userList.get(0).getPassword();
+										
+							if(password.equals(savedPassword)) {
+								try {
+									printDivider();
+									System.out.println(repeatCharSpace("LOGIN SUCCESSFUL..."));
+									//readUsers(choice);
+									printDivider();
+								} catch (UserExistsException e) {
+									System.out.println(e);
+									printDivider();
+								}
+								pass = false;
+							}
+						}
 					}
+					counter++;
 				}
-				counter++;
 			}
-			
+		} catch (PatternNotValidException e) {
+			System.out.println(repeatCharSpace("ERROR: Special Characters are not allowed."));
+		} catch (UserNotFoundException e) {
+			System.out.println(repeatCharSpace("ERROR: User not found. Please register."));
 		}
+		
 		return userList;
 	}
 	
-	private static boolean validateUser(String username) {
+	private static boolean validateUser(String username) throws PatternNotValidException,UserNotFoundException{
 		boolean user = true;
 		int counter = 0;
 		while(user) {
@@ -167,25 +198,21 @@ public class Application {
 				user=false;
 				return false;
 			} else if(!username.equals("Q")&&!username.equals("q")&&!username.equals("register")) {
-				try {
-					boolean validUser = validateString(username);
-					boolean newUser = checkUser(username);
-					if(validUser && newUser) {
-						user = false;
-						return true;
-					}
-					printDivider();
-				} catch (PatternNotValidException e) {
-					printDivider();
-					System.out.println(e);
+				boolean validUser = validateString(username);
+				boolean newUser = checkUser(username);
+				if(validUser && newUser) {
 					user = false;
-					printDivider();
-				} catch (UserNotFoundException e) {
-					printDivider();
-					System.out.println(e);
-					user = false;
-					printDivider();
+					return true;
 				}
+				if (!validUser) {
+					printDivider();
+					user = false;
+					throw new PatternNotValidException("");
+				}
+				if (!newUser) {
+					printDivider();
+					throw new UserNotFoundException("");
+				} 
 			}
 			counter++;
 		}
@@ -212,96 +239,87 @@ public class Application {
 		String password = "";
 		
 		boolean registration = true;
-		while(registration) {
-			boolean user 	= true;
-			boolean pass 	= true;
-			int counter 	= 0;
-			while(user) {
-				boolean validUser 	= false;
-				if(counter > 0) {
-					printDivider();
-					System.out.println(repeatCharSpace("Re-enter Username or type 'Q' to exit"));
-					printDivider();
-					welcome		= new Scanner(System.in);				
-					username 	= welcome.nextLine();
-				}
-				if(username.equals("Q")||username.equals("q")) {
-					printDivider();
-					System.out.println(repeatCharSpace("Exiting program. Thank you for using LockMe!"));
-					printDivider();
-					registration=false;
-					user=false;
-				}
-				
-				try {
-					validUser = validateString(username);
-					printDivider();
-				} catch (PatternNotValidException e) {
-					System.out.println(e);
-					printDivider();
-				}
-				
-				if(validUser) {
-					user = false;
-				}
-				counter++;
-			}
-			if(registration) {
-				while(pass) {
-					boolean validPass 	= false;
+		try {
+			while(registration) {
+				boolean user 	= true;
+				boolean pass 	= true;
+				int counter 	= 0;
+				while(user) {
+					boolean validUser 	= false;
 					if(counter > 0) {
 						printDivider();
-						System.out.println(repeatCharSpace("Enter Password or type 'Q' to exit."));
+						System.out.println(repeatCharSpace("Re-enter Username or type 'Q' to exit"));
 						printDivider();
 						welcome		= new Scanner(System.in);				
-						password 	= welcome.nextLine();
+						username 	= welcome.nextLine();
 					}
-					if(password.equals("Q")||password.equals("q")) {
+					if(username.equals("Q")||username.equals("q")) {
 						printDivider();
 						System.out.println(repeatCharSpace("Exiting program. Thank you for using LockMe!"));
 						printDivider();
 						registration=false;
-						pass=false;
+						user=false;
 					}
 					
-					try {
-						//printDivider();
-						validPass = validateString(password);
-						//printDivider();
-					} catch (PatternNotValidException e) {
-						System.out.println(e);
-						printDivider();
+					validUser = validateString(username);
+					
+					if(validUser) {
+						user = false;
 					}
 					
-					if(validPass) {
-						pass = false;
-					}
 					counter++;
 				}
-			}
-			
-			if(registration) {
-				try {
-					userList.add(createUser(username,password));
-					saveUser(userList);
-					readUsers(username);
-					printDivider();
-					registration=false;
-					printDivider();
-					printDivider();
-					System.out.println(repeatCharSpace("REGISTRATION SUCCESSFUL!"));
-					System.out.println(repeatCharSpace("LOADING USER PORTAL...."));
-					printDivider();
-					printDivider();
-				} catch (UserExistsException e) {
-					System.out.println(e);
-					printDivider();
-					registration=false;
+				
+				if(registration) {
+					while(pass) {
+						boolean validPass 	= false;
+						if(counter > 0) {
+							printDivider();
+							System.out.println(repeatCharSpace("Enter Password or type 'Q' to exit."));
+							printDivider();
+							welcome		= new Scanner(System.in);				
+							password 	= welcome.nextLine();
+						}
+						if(password.equals("Q")||password.equals("q")) {
+							printDivider();
+							System.out.println(repeatCharSpace("Exiting program. Thank you for using LockMe!"));
+							printDivider();
+							registration=false;
+							pass=false;
+						}
+						registration = validateString(password);
+						counter++;
+					}
 				}
-			}
-			
-			
-		} return userList;
+				
+				if(registration) {
+					try {
+						userList.add(createUser(username,password));
+						saveUser(userList);
+						readUsers(username);
+						printDivider();
+						registration=false;
+						printDivider();
+						printDivider();
+						System.out.println(repeatCharSpace("REGISTRATION SUCCESSFUL!"));
+						System.out.println(repeatCharSpace("LOADING USER PORTAL...."));
+						printDivider();
+						printDivider();
+					} catch (UserExistsException e) {
+						System.out.println(e);
+						printDivider();
+						registration=false;
+					}
+				}
+				
+				
+			} 
+		} catch (PatternNotValidException e) {
+				System.out.println(repeatCharSpace("ERROR: Special Characters are not allowed."));
+		} catch (UserExistsException e) {
+				System.out.println(repeatCharSpace("ERROR: User not found. Please register."));
+		}
+		return userList;
 	}
 	
 	private static void admin() {
