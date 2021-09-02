@@ -288,6 +288,9 @@ public class Application {
 							pass=false;
 						}
 						registration = validateString(password);
+						if(registration) {
+							pass=false;
+						}
 						counter++;
 					}
 				}
