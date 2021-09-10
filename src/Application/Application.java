@@ -518,7 +518,7 @@ public class Application {
 				int choice 	= userPortal.nextInt();
 				if (choice == 1) {
 					System.out.println(repeatCharSpace("1: SEE SAVED CREDENTIALS"));
-					System.out.println(userList.get(0).getUsername());
+					//System.out.println(userList.get(0).getUsername());
 					readCreds(userList);
 					counter++;
 				} else if (choice == 2) {
